@@ -42,9 +42,24 @@ module Oxidized
       unless @exec
         shell_open @ssh
         begin
-          @username ? shell_login : expect(@node.prompt)
+		
+		$errcnt = 0 #err Count
+
+		# Attempt Auth AS local auth (most of the time):
+        expect username
+		cmd @node.auth[:username], password
+      	cmd @node.auth[:password]
+
         rescue Timeout::Error
-          raise PromptUndetect, [ @output, 'not matching configured prompt', @node.prompt ].join(' ')
+
+			# Attempt Auth AS SSH auth if local auth failed:			
+			if $errcnt > 0
+					raise PromptUndetect, [ @output, '{$errcnt} inIF not matching configured prompt', @node.prompt ].join(' ')
+			else
+				expect @node.prompt
+				$errcnt+=1	
+			end
+
         end
       end
       connected?
@@ -106,10 +121,11 @@ module Oxidized
     # success, it always opens shell and then run auth in shell. I guess
     # they'll never support exec() :)
     def shell_login
-      expect username
-      cmd @node.auth[:username], password
-      cmd @node.auth[:password]
+	# not needed??
+		
     end
+
+	
 
     def exec state=nil
       state == nil ? @exec : (@exec=state) unless vars :ssh_no_exec
@@ -123,14 +139,17 @@ module Oxidized
       @output
     end
 
+	
     def expect regexp
-      Oxidized.logger.debug "lib/oxidized/input/ssh.rb: expecting #{regexp.inspect} at #{node.name}"
-      Timeout::timeout(Oxidized.config.timeout) do
+     Oxidized.logger.debug "lib/oxidized/input/ssh.rb: expecting #{regexp.inspect} at #{node.name}"      
+		Timeout::timeout(Oxidized.config.timeout) do
         @ssh.loop(0.1) do
-          sleep 0.1
-          not @output.match regexp
+			sleep 0.1
+			not @output.match regexp		
         end
-      end
-    end
+ 	 end	
+     end
+
+
   end
 end
