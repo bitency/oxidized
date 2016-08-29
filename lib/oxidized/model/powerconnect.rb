@@ -1,6 +1,6 @@
 class PowerConnect < Oxidized::Model
 
-  prompt /^([\w\s.@-]+[#>]\s?)$/ # allow spaces in hostname..dell does not limit it.. #
+  prompt /^([\w\s.@-]+[#>]\s?)$/
 
   comment  '! '
 
@@ -38,15 +38,17 @@ class PowerConnect < Oxidized::Model
   cfg :telnet, :ssh do
     if vars :enable
       post_login do
-        send "enable\n"
-        send vars(:enable) + "\n"
+        send "enable\r\n"
+        send vars(:enable) + "\r\n"
       end
     end
 
+    post_login "fsdsfdsfsfsfsfsf" 
+
     post_login "terminal datadump"
     post_login "terminal length 0"
-    pre_logout "logout"
-    pre_logout "exit"
+    pre_logout "logout \n \r \n"
+    pre_logout "exit \n \r \n"
     
   end
 
