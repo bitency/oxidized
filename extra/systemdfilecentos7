@@ -1,0 +1,11 @@
+[Unit]
+Description=oxidized
+After=network.service
+
+[Service]
+Type=forking
+ExecStart=/usr/local/bin/oxidized --daemonize
+User=librenms
+
+[Install]
+WantedBy=default.target
